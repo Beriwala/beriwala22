@@ -1,51 +1,41 @@
 import axios from "axios";
 
 export default async function handler(req, res) {
-  // API Credentials
   const API_KEY = process.env.FRAMPACK_API_KEY;
   const API_SECRET = process.env.FRAMPACK_API_SECRET;
 
   try {
-    // Input Data
     const { prompt, imageUrl } = req.body;
 
-    // Frampack API Call
     const response = await axios.post(
-      "https://api.frampack.com/v2/video/create", // ✅ सही Endpoint
+      "https://api.frampack.com/v3/generations",
       {
-        text_prompt: prompt,
-        source_image: imageUrl,
-        config: {
-          quality: "hd",
-          duration: 15
-        }
+        model: "video-xl-1.0",
+        prompt: prompt,
+        init_image: imageUrl,
+        steps: 25
       },
       {
         headers: {
-  "X-API-Key": "YOUR_KEY", // शब्द-शब्द मिलाएं
-  "X-API-Secret": "YOUR_SECRET"
-}
+          "Authorization": `Bearer ${API_KEY}:${API_SECRET}`,
+          "Content-Type": "application/json"
+        }
       }
     );
 
-    // Success Response
     res.status(200).json({
-      success: true,
-      videoUrl: response.data.output.url 
+      videoUrl: response.data.output[0].url // ✅ नया response format
     });
 
   } catch (error) {
-    // Error Debugging
-    console.log("🚨 Error Details:", {
-      status: error.response?.status,
-      message: error.message,
-      apiError: error.response?.data
+    console.log("🚨 Full Error Trace:", {
+      url_used: "https://api.frampack.com/v3/generations",
+      headers_sent: error.config?.headers,
+      error_data: error.response?.data
     });
     
-    // User-Friendly Response
     res.status(500).json({
-      success: false,
-      error: error.response?.data?.error || "Video बनाने में असफल"
+      error: error.response?.data?.error || "API configuration issue"
     });
   }
 }
