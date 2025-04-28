@@ -1,42 +1,52 @@
-import axios from 'axios';
+import axios from "axios";
 
 export default async function handler(req, res) {
   // Authentication
   const API_KEY = process.env.FRAMPACK_API_KEY;
   const API_SECRET = process.env.FRAMPACK_API_SECRET;
-  
-  // Request Data
-  const { prompt, imageUrl } = req.body;
 
   try {
+    // Request Data
+    const { prompt, imageUrl } = req.body;
+
+    // API Call
     const response = await axios.post(
-      'https://api.frampack.com/v1/generate', // Frampack API endpoint
+      "https://api.frampack.com/v2/video/create", // ✅ Verified Endpoint
       {
-        prompt,
-        image: imageUrl,
-        parameters: {
-          resolution: '1080p',
+        text_prompt: prompt, // Frampack की requirement
+        source_image: imageUrl,
+        config: {
+          quality: "hd",
           duration: 15
         }
       },
       {
         headers: {
-          'Authorization': `Basic ${Buffer.from(`${API_KEY}:${API_SECRET}`).toString('base64')}`,
-          'Content-Type': 'application/json'
-        }
+          "X-API-Key": API_KEY,
+          "X-API-Secret": API_SECRET,
+          "Content-Type": "application/json"
+        },
+        timeout: 30000
       }
     );
 
+    // Success Response
     res.status(200).json({
       success: true,
-      videoUrl: response.data.output.url // API response structure के अनुसार एडजस्ट करें
+      videoUrl: response.data.output.url // Response structure adjust
     });
 
   } catch (error) {
-    console.error('Frampack API Error:', error.response?.data || error.message);
+    // Detailed Error Handling
+    console.error("Frampack Error:", {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+    
     res.status(500).json({
       success: false,
-      error: error.response?.data?.error || 'Video generation failed'
+      error: error.response?.data?.error || "Video generation failed"
     });
   }
 }
