@@ -22,10 +22,9 @@ export default async function handler(req, res) {
       },
       {
         headers: {
-          "X-API-Key": API_KEY, // ✅ सही Header
-          "X-API-Secret": API_SECRET,
-          "Content-Type": "application/json"
-        }
+  "X-API-Key": "YOUR_KEY", // शब्द-शब्द मिलाएं
+  "X-API-Secret": "YOUR_SECRET"
+}
       }
     );
 
